@@ -86,6 +86,7 @@ $categories= $query->fetch(PDO::FETCH_ASSOC);
             <input type="text" id="nom" name="nom">
         </div>
         <button>ajouter</button>
+        <a href="../cat/inscription.php"> <button>s'inscrire</button></a>
     </form>
 </body>
 </html>
