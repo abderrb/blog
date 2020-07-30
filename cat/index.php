@@ -1,5 +1,5 @@
-
 <?php
+
 // On se connecte
 require_once('../inc/connect.php');
 

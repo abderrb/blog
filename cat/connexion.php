@@ -1,5 +1,6 @@
 <?php
-require_once('../inc/connect.php');
+require_once '../inc/header.php';
+require_once '../inc/connect.php';
 
 if (!empty($_POST)){
 
@@ -29,15 +30,19 @@ if (!empty($_POST)){
     }
 
     if(!password_verify($_POST['bonjour'], $user['password'])){
-        echo 'Vous êtes connecté';
-       }else{
-           echo 'email et/ou mot de passe incorrecte';
-       }
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'nickname' => $user['nickname'],
+            'email' => $user['email'],
+            'roles' => $user['roles'],
+        ];
+        header('Location: index.php');
        }else{
            $erreur = 'Formulaire incomplet';
        }
 
     }
+}
 ?>
 
 <!DOCTYPE html>
@@ -46,6 +51,9 @@ if (!empty($_POST)){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>blog</title>
+        <button>se connecter</button>
+        <button>se deconnecter</button>
+
     <h1>connexion</h1>
 </head>
 <body>
