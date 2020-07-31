@@ -1,6 +1,6 @@
 <?php
-    require_once 'inc/header.php';
-    require_once '..inc/connect.php';
+    require_once '../inc/header.php';
+    require_once '../inc/connect.php';
    
     $id = strip_tags($_GET['id']);
     $sql = "DELETE FROM `liste` WHERE `id`=:id;";
@@ -12,3 +12,5 @@
 
     header('Location: index.php');
 ?>
+
+

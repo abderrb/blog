@@ -1,4 +1,5 @@
 <?php
+require_once '../inc/header.php';
 // On vérifie si on a un id dans l'URL
 if(isset($_GET['id'])&& !empty($_GET['id'])){
     // On a un id, on va chercher la catégorie dans la base
@@ -37,7 +38,22 @@ $categorie = $query->fetch(PDO::FETCH_ASSOC);
     // On stocke les données en base
     // On écrit la requête
         $sql = "UPDATE `categorie` SET `nom`= :nom WHERE `id` = {$categorie['id']}";
-  
+         
+         $query = $db->prepare($sql);
+
+         $query->bindValue(':nom', $nom, PDO::PARAM_STR);
+
+         $query->execute();
+
+         header('Location: index.php');
+     }
+ }
+
+}else{
+ header('Location: index.php');   
+    
+}
+    
 ?>  
 
 <!DOCTYPE html>

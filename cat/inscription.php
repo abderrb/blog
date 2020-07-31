@@ -1,4 +1,5 @@
 <?php
+require_once '../inc/header.php';
 require_once '../inc/connect.php';
 
 if (!empty($_POST)) {
@@ -26,6 +27,10 @@ if (!empty($_POST)) {
             $pass = password_hash($_POST['password'], PASSWORD_ARGON2ID);
         }
 
+        if(!empty($_SESSION['message'])){
+            header('Location: inscription.php');
+            exit;
+
         // On écrit la requête
         $sql = 'INSERT INTO `users` (`email`, `password`, `nickname`) VALUES (:email, :password, :nom);';
 
@@ -45,7 +50,7 @@ if (!empty($_POST)) {
         $erreur = "Formulaire incomplet";
     }
 }
-
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -58,24 +63,32 @@ if (!empty($_POST)) {
 </head>
 
 <body>
+<?php
+        if(isset($_SESSION['message']) && !empty($_SESSION['message'])){
+            foreach($_SESSION['message'] as $message){
+                echo "<p>$message</p>";
+            }
+            unset($_SESSION['message']);
+        }
+    ?>
     <form method="post">
         <div>
-            <label for="nom">Nom </label>
-            <input type="text" id="nom" name="nom">
+            <label for="nom">Nom :</label>
+            <input type="text" name="nom" id="nom">
         </div>
         <div>
-            <label for="email">e-mail </label>
-            <input type="text" id="email" name="email">
+            <label for="email">Email :</label>
+            <input type="email" name="email" id="email">
         </div>
         <div>
-            <label for="password"> Mot de passe </label>
-            <input type="password" id="password" name="password">
+            <label for="pass">Mot de passe :</label>
+            <input type="password" name="pass" id="pass">
         </div>
         <div>
-            <label for="password"> confirmer le mot de passe </label>
-            <input type="password" id="password" name="password2">
+            <label for="pass2">Confirmer le mot de passe :</label>
+            <input type="password" name="pass2" id="pass2">
         </div>
-        <button>m'inscrire</button>
+        <button>M'inscrire</button>
     </form>
 </body>
 

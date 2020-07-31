@@ -64,7 +64,7 @@ $categories= $query->fetch(PDO::FETCH_ASSOC);
         </tbody>
             <table>
                 <tbody>
-                <? foreach($categories as $categories) :?>
+                <? foreach($categories as $categorie) :?>
                     <tr>
                         <td><?= $categories['id'] ?></td>
                         <td><?= $categories['name'] ?></td>  
