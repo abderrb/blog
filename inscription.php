@@ -1,38 +1,41 @@
 <?php
-require_once '../inc/header.php';
-require_once '../inc/connect.php';
+require_once 'inc/header.php';
 
-if (!empty($_POST)) {
+// On se connecte à la base de données
+require_once 'inc/connect.php';
 
+// On vérifie que POST n'est pas vide
+if(!empty($_POST)){
     // On vérifie que tous les champs obligatoires sont remplis
-    if (
+    if(
         isset($_POST['nom']) && !empty($_POST['nom'])
         && isset($_POST['email']) && !empty($_POST['email'])
-        && isset($_POST['password']) && !empty($_POST['password'])
-        && isset($_POST['password2']) && !empty($_POST['password2'])
-    ) {
-
+        && isset($_POST['pass']) && !empty($_POST['pass'])
+        && isset($_POST['pass2']) && !empty($_POST['pass2'])
+    ){
         // On récupère et on nettoie les données
         $nom = strip_tags($_POST['nom']);
-        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            die('email invalide');
-            header('Location: inscription.php');
-        } else {
+
+        // On vérifie la validité de l'e-mail
+        if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
+            $_SESSION['message'][] = 'email invalide';
+        }else{
             $email = $_POST['email'];
         }
-        if ($_POST['password'] != $_POST['password2']) {
-            die('Mot de passe différents');
-            header('Location: inscription.php');
-        } else {
-            $pass = password_hash($_POST['password'], PASSWORD_ARGON2ID);
+
+        // On vérifie que les mots de passe sont identiques
+        if($_POST['pass'] != $_POST['pass2']){
+            $_SESSION['message'][] = 'Mots de passe différents';
+        }else{
+            $pass = password_hash($_POST['pass'], PASSWORD_ARGON2ID);
         }
 
         if(!empty($_SESSION['message'])){
             header('Location: inscription.php');
             exit;
-
+        }
         // On écrit la requête
-        $sql = 'INSERT INTO `users` (`email`, `password`, `nickname`) VALUES (:email, :password, :nom);';
+        $sql = 'INSERT INTO `users`(`email`, `password`, `nickname`) VALUES (:email, :password, :nom);';
 
         // On prépare la requête
         $query = $db->prepare($sql);
@@ -42,28 +45,25 @@ if (!empty($_POST)) {
         $query->bindValue(':password', $pass, PDO::PARAM_STR);
         $query->bindValue(':nom', $nom, PDO::PARAM_STR);
 
-        // On exécute
+        // On exécute la requête
         $query->execute();
 
         header('Location: connexion.php');
-    } else {
+    }else{
         $erreur = "Formulaire incomplet";
     }
-}
 }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog</title>
-    <h1>inscription</h1>
+    <title>Inscription</title>
 </head>
-
 <body>
-<?php
+    <h1>Inscription</h1>
+    <?php
         if(isset($_SESSION['message']) && !empty($_SESSION['message'])){
             foreach($_SESSION['message'] as $message){
                 echo "<p>$message</p>";
@@ -91,5 +91,4 @@ if (!empty($_POST)) {
         <button>M'inscrire</button>
     </form>
 </body>
-
 </html>

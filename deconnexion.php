@@ -1,5 +1,5 @@
 <?php
-require_once '../inc/header.php';
+require_once 'inc/header.php';
 
 unset($_SESSION['user']);
 if(isset($_SERVER['HTTP_REFERER'])){
