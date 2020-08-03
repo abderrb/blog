@@ -33,6 +33,29 @@ if(!empty($_POST)){
         $titre = strip_tags($_POST['titre']);
         $contenu = htmlspecialchars($_POST['contenu']);
 
+        // On récupère et on stocke l'image si elle existe
+        if(isset($_FILES['image']) && !empty($_FILES['image'])){
+            // On vérifie qu'on a pas d'erreur
+            if($_FILES['image']['error'] != UPLOAD_ERR_OK){
+                header('Location: ajout.php');
+                exit;
+            }
+
+            // On génère un nouveau nom de fichier
+            $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $nomImage = md5(uniqid()).'.'.$extension;
+
+            // On transfère le fichier
+            if(!move_uploaded_file($_FILES['image']['tmp_name'],
+            __DIR__.'/../uploads/'.$nomImage
+            )
+            ){
+                // Transfert echoué
+                header('Location: ajout.php');
+            }
+            
+        }
+
         // On écrit la requête
         $sql = 'INSERT INTO `articles`(`title`,`content`,`users_id`,`categories_id`) VALUES (:titre, :contenu, :user, :categorie);';
 
@@ -64,7 +87,7 @@ if(!empty($_POST)){
 </head>
 <body>
     <h1>Ajouter un article</h1>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <div>
             <label for="titre">Titre : </label>
             <input type="text" name="titre" id="titre">
@@ -73,11 +96,7 @@ if(!empty($_POST)){
             <label for="contenu">Contenu : </label>
             <textarea name="contenu" id="contenu"></textarea>
         </div>
-        <div>
-            <label for="categorie">Catégorie : </label>
-
-
-
+        
 <select name="categorie" id="categorie" required>
     <option value="">-- Choisir une catégorie --</option>
     <?php foreach($categories as $categorie): ?>
@@ -86,7 +105,12 @@ if(!empty($_POST)){
         </option>
     <?php endforeach; ?>
 </select>
-
+        <div>
+            <label for="image">Ajouter une photo:</label>
+            <input type="file"
+            id="image" name="image"
+            accept="image/png, image/jpeg">
+        </div>
 
 </div>
         <button>Ajouter l'article</button>
