@@ -32,9 +32,11 @@ if(!empty($_POST)){
         // On récupère et on nettoie les données
         $titre = strip_tags($_POST['titre']);
         $contenu = htmlspecialchars($_POST['contenu']);
-
+        $image = null;
         // On récupère et on stocke l'image si elle existe
-        if(isset($_FILES['image']) && !empty($_FILES['image'])){
+        if(isset($_FILES['image']) && !empty($_FILES['image'])
+        &&$_FILES['image']['error'] != UPLOAD_ERR_NO_FILE
+        ){
             // On vérifie qu'on a pas d'erreur
             if($_FILES['image']['error'] != UPLOAD_ERR_OK){
                 header('Location: ajout.php');
@@ -45,6 +47,27 @@ if(!empty($_POST)){
             $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
             $nomImage = md5(uniqid()).'.'.$extension;
 
+            $extensions = ['png', 'jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp'];
+            $types = ['image/png', 'image/jpeg'];
+
+            // On vérifie si l'extension et le type sont absents des tableaux
+            if(
+                !in_array($extension, $extensions)
+                || !in_array($_FILES['image'],['type'], $types)
+            ){
+                header('Location: ajout.php');
+            }
+
+            $tailleMax = 1048576;  //1Mo = 1024*1024
+
+            // On vérifie si la taille dépasse le maximum
+            if($_FILES['image']['size'] > $tailleMax){
+                header('Location: ajout.php');
+            }
+
+
+
+
             // On transfère le fichier
             if(!move_uploaded_file($_FILES['image']['tmp_name'],
             __DIR__.'/../uploads/'.$nomImage
@@ -52,12 +75,13 @@ if(!empty($_POST)){
             ){
                 // Transfert echoué
                 header('Location: ajout.php');
+                exit;
             }
             
         }
 
         // On écrit la requête
-        $sql = 'INSERT INTO `articles`(`title`,`content`,`users_id`,`categories_id`) VALUES (:titre, :contenu, :user, :categorie);';
+        $sql = 'INSERT INTO `articles`(`title`,`content`,`users_id`,`categories_id`,`featured_image`) VALUES (:titre, :contenu, :user, :categorie, :image);';
 
         // On prépare la requête
         $query = $db->prepare($sql);
@@ -67,6 +91,7 @@ if(!empty($_POST)){
         $query->bindValue(':contenu', $contenu, PDO::PARAM_STR);
         $query->bindValue(':user', $_SESSION['user']['id'], PDO::PARAM_INT);
         $query->bindValue(':categorie', $_POST['categorie'], PDO::PARAM_INT);
+        $query->bindValue(':image', $nomImage, PDO::PARAM_STR);
 
         // On exécute la requête
         $query->execute();

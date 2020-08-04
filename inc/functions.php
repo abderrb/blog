@@ -38,3 +38,19 @@ function extrait (string $texte, int $longueur): string {
 
     return $texteReduit;
 }
+
+
+/**
+ * Cette fonction génère une miniature d'une image dans la taille demandée (carré) (PNG et JPG)
+ * 
+ *@param string $fichier Chemin complet du fichier
+ *@param integer $taille Taille en pixels
+ * @return boolean 
+ */
+function mini(string $fichier, int $taille): bool 
+{
+    $fichier = 'C:\xampp\htdocs\blog\uploads';
+    $taille = getimagesize($fichier);
+    
+
+}
