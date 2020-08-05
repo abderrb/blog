@@ -23,8 +23,16 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <?php foreach($articles as $article): ?>
         <h1><a href="articles/detail.php?id=<?= $article['id'] ?>"><?= $article['title']?></a></h1>
-        <?php if (!is_null($article['featured_image'])):?>
-            <P><img src="<?= URL . '/uploads/' . $article['featured_image']?>" alt="<?= $article['title']?>"> </p>
+        <?php if (!is_null($article['featured_image'])):
+            // On fabrique le nom de l'image
+            $nomImage = pathinfo($article['featured_image'], PATHINFO_FILENAME);
+            $extension = pathinfo($article['featured_image'], PATHINFO_EXTENSION);
+
+            $miniature = "$nomImage-300x300.$extension";
+
+            
+            ?>
+            <P><img src="<?= URL . '/uploads/' .$miniature?>" alt="<?= $article['title']?>"> </p>
         <?php endif; ?>
         <p>Article écrit par <?= $article['nickname'] ?> dans la catégorie <?= $article['name'] ?> le <?= formatDate($article['created_at']) ?></p>
         <p><?= extrait($article['content'], 171) ?></p>
