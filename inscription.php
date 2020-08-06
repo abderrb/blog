@@ -1,4 +1,7 @@
 <?php
+
+use PHPMailer\PHPMailer\Exception;
+
 require_once 'inc/header.php';
 
 // On se connecte à la base de données
@@ -47,6 +50,38 @@ if(!empty($_POST)){
 
         // On exécute la requête
         $query->execute();
+
+        require_once 'inc/config-mail.php';
+
+        try{
+            // On va définir l'expéditeur du mail
+            $sendmail->setFrom('admin@domaine.fr', 'admin');
+        
+            // On définit le ou les destinataires
+            $sendmail->addAddress($email, $nom);
+        
+            // On définit le sujet du mail
+            $sendmail->Subject= 'inscription';
+        
+            // On active le HTML
+            $sendmail->isHTML();
+        
+            // On écrit  le contenu du mail en html
+        
+            $sendmail->Body ="<h1>Message de Blog</h1>
+                             <p>C'est un plaisir de vous compter parmis nos nouveaux membres {$_SESSION['user']['nickname']}</p>";
+        
+            // En texte brut
+            $sendmail->AltBody ="Texte du message en mode 'Texte brute'";
+        
+            // On envoi  le mail
+            $sendmail->send();
+            echo "Mail envoyé";
+        
+        }catch(Exception $e){
+            // Ici le mail n'est pas parti
+            echo 'Erreur:' . $e->errorMessage();
+        }
 
         header('Location: connexion.php');
     }else{

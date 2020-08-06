@@ -5,6 +5,7 @@ require_once 'inc/connect.php';
 
 require_once 'inc/functions.php';
 
+
 $sql = 'SELECT a.*, u.`nickname`, c.* FROM `articles` a LEFT JOIN `users` u ON u.id = a.users_id LEFT JOIN `categories` c ON a.categories_id = c.id GROUP BY a.id ORDER BY a. `created_at` desc;' ;
 
 $query = $db->query($sql);

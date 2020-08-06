@@ -1,16 +1,19 @@
 <?php
+
+use PHPMailer\PHPMailer\Exception;
+
 require_once '../inc/header.php';
-if (!isset($_SESSION['user'])) {
-    header('Location: ' . URL . '/connexion.php');
+if(!isset($_SESSION['user'])){
+    header('Location: '.URL.'/connexion.php');
     exit;
 }
 // Transforme une chaine de caractères "json" en tableau PHP
 $roles = json_decode($_SESSION['user']['roles']);
 
 // On vérifie si on a le rôle admin dans $roles
-if (!in_array('ROLE_ADMIN', $roles)) {
-    header('Location: ' . URL);
-    exit;
+if(!in_array('ROLE_ADMIN', $roles)){
+    header('Location: '.URL);
+    exit; 
 }
 
 require_once '../inc/connect.php';
@@ -22,78 +25,73 @@ $query = $db->query($sql);
 $categories = $query->fetchAll(PDO::FETCH_ASSOC);
 
 // On vérifie que POST n'est pas vide
-if (!empty($_POST)) {
-    $_SESSION['form'] = $_POST;
-
+if(!empty($_POST)){
+    // echo '<pre>';
+    // var_dump($_FILES);
+    // echo '</pre>';
+    // die;
     // On vérifie que tous les champs obligatoires sont remplis
-    if (
+    if(
         isset($_POST['titre']) && !empty($_POST['titre'])
         && isset($_POST['contenu']) && !empty($_POST['contenu'])
         && isset($_POST['categorie']) && !empty($_POST['categorie'])
-    ) {
+    ){
         // On récupère et on nettoie les données
         $titre = strip_tags($_POST['titre']);
         $contenu = htmlspecialchars($_POST['contenu']);
-        $image = null;
+        $nomImage = null;
+
         // On récupère et on stocke l'image si elle existe
-        if (
+        if(
             isset($_FILES['image']) && !empty($_FILES['image'])
             && $_FILES['image']['error'] != UPLOAD_ERR_NO_FILE
-        ) {
-            // On vérifie qu'on a pas d'erreur
-            if ($_FILES['image']['error'] != UPLOAD_ERR_OK) {
-                // On ajoute un message de session
-                $_SESSION['message'][] = "Une erreur est survenue lors du transfert du fichier";
-
-                foreach ($_SESSION['message'] as $message) {
-                    echo "<p>$message</p>";
-                }
+        ){
+            // On vérifie qu'on n'a pas d'erreur
+            if($_FILES['image']['error'] != UPLOAD_ERR_OK){
+                header('Location: ajout.php');
+                exit;
             }
 
             // On génère un nouveau nom de fichier
             $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $nomImage = md5(uniqid()) . '.' . $extension;
+            $nomImage = md5(uniqid()).'.'.$extension;
 
             $extensions = ['png', 'jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp'];
             $types = ['image/png', 'image/jpeg'];
 
             // On vérifie si l'extension et le type sont absents des tableaux
-            if (
+            if(
                 !in_array(strtolower($extension), $extensions)
-                || !in_array($_FILES['image'], ['type'], $types)
-            ) {
-                $_SESSION['message'][] = "le type du fichier n'est pas valide (PNG ou JPG uniquement)";
+                || !in_array($_FILES['image']['type'], $types)
+            ){
+                header('Location: ajout.php');
             }
 
-            $tailleMax = 1048576;  //1Mo = 1024*1024
+            $tailleMax = 1048576; // 1024*1024
 
             // On vérifie si la taille dépasse le maximum
-            if ($_FILES['image']['size'] > $tailleMax) {
-                $_SESSION['message'][] = "l'image est trop volumiseuse (1Mo maximum)";
-            }
-
-            if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
-                // Si au moins 1 erreur, on redirige vers le formulaire
+            if($_FILES['image']['size'] > $tailleMax){
                 header('Location: ajout.php');
-                exit;
             }
-
 
             // On transfère le fichier
-            if (!move_uploaded_file(
-                $_FILES['image']['tmp_name'],
-                __DIR__ . '/../uploads/' . $nomImage
-            )) {
-                // Transfert echoué
+            if(!move_uploaded_file(
+                    $_FILES['image']['tmp_name'],
+                    __DIR__.'/../uploads/'.$nomImage
+                )
+            ){
+                // Transfert échoué
                 header('Location: ajout.php');
                 exit;
             }
-            mini(__DIR__ . '/../uploads/' . $nomImage, 200);
-            mini(__DIR__ . '/../uploads/' . $nomImage, 300);
+            
+            mini(__DIR__.'/../uploads/'.$nomImage, 200);
+            mini(__DIR__.'/../uploads/'.$nomImage, 300);
+
         }
 
         // On écrit la requête
-        $sql = 'INSERT INTO `articles`(`title`,`content`,`users_id`,`categories_id`,`featured_image`) VALUES (:titre, :contenu, :user, :categorie, :image);';
+        $sql = 'INSERT INTO `articles`(`title`,`content`,`users_id`,`categories_id`, `featured_image`) VALUES (:titre, :contenu, :user, :categorie, :nomimage);';
 
         // On prépare la requête
         $query = $db->prepare($sql);
@@ -103,76 +101,84 @@ if (!empty($_POST)) {
         $query->bindValue(':contenu', $contenu, PDO::PARAM_STR);
         $query->bindValue(':user', $_SESSION['user']['id'], PDO::PARAM_INT);
         $query->bindValue(':categorie', $_POST['categorie'], PDO::PARAM_INT);
-        $query->bindValue(':image', $nomImage, PDO::PARAM_STR);
+        $query->bindValue(':nomimage', $nomImage, PDO::PARAM_STR);
 
         // On exécute la requête
         $query->execute();
 
+        require_once '../inc/config-mail.php';
 
-        header('Location: ' . URL);
+        try{
+            // On va définir l'expéditeur du mail
+            $sendmail->setFrom('no-reply@domaine.fr', 'Nom');
+        
+            // On définit le ou les destinataires
+            $sendmail->addAddress('destinataire@domaine.fr', 'Brouette');
+        
+            // On définit le sujet du mail
+            $sendmail->Subject= 'un nouvel article a été publié';
+        
+            // On active le HTML
+            $sendmail->isHTML();
+        
+            // On écrit  le contenu du mail en html
+        
+            $sendmail->Body ="<h1>Message de Blog</h1>
+                             <p>Un nouvel article intitulé \"$titre\" a été pûblié par {$_SESSION['user']['nickname']}</p>";
+        
+            // En texte brut
+            $sendmail->AltBody ="Texte du message en mode 'Texte brute'";
+        
+            // On envoi  le mail
+            $sendmail->send();
+            echo "Mail envoyé";
+        
+        }catch(Exception $e){
+            // Ici le mail n'est pas parti
+            echo 'Erreur:' . $e->errorMessage();
+        }
+
+        header('Location: '.URL);
         exit;
-    } else {
-        $_SESSION['message'][] = "le formulaire est incomplet";
+    }else{
+        $erreur = "Formulaire incomplet";
     }
 }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter un article</title>
 </head>
-
 <body>
     <h1>Ajouter un article</h1>
-    <?php
-    if (isset($_SESSION['message']) && !empty($_SESSION['message'])) :
-        foreach ($_SESSION['message'] as $message) :
-    ?>
-            <p><?= $message ?></p>
-    <?php
-        endforeach;
-        unset($_SESSION['message']);
-    endif;
-    ?>
     <form method="post" enctype="multipart/form-data">
         <div>
             <label for="titre">Titre : </label>
-            <input type="text" name="titre" id="titre" value="<?=isset($_SESSION['form']['titre'])
-            ? $_SESSION['form']['titre']:""?>">
+            <input type="text" name="titre" id="titre">
         </div>
         <div>
             <label for="contenu">Contenu : </label>
-            <textarea name="contenu" id="contenu"><?= isset ($_SESSION['form']['contenu'])
-            ? $_SESSION['form']['contenu']:""?></textarea>
+            <textarea name="contenu" id="contenu"></textarea>
         </div>
-
-        <select name="categorie" id="categorie" required>
-            <option value="">-- Choisir une catégorie --</option>
-            <?php foreach ($categories as $categorie) : ?>
-                <option value="<?= $categorie['id'] ?>"<?php
-                if(
-                    isset($_SESSION['form']['categorie'])
-                    && $_SESSION['form']['categorie'] == $categorie['id']
-                ){
-                    echo "selected";
-                }
-            ?>>
-                    <?= $categorie['name'] ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
         <div>
-            <label for="image">Ajouter une photo:</label>
-            <input type="file" id="image" name="image" accept="image/png, image/jpeg">
-        </div> 
-
+            <label for="categorie">Catégorie : </label>
+            <select name="categorie" id="categorie" required>
+                <option value="">-- Choisir une catégorie --</option>
+                <?php foreach($categories as $categorie): ?>
+                    <option value="<?= $categorie['id'] ?>">
+                        <?= $categorie['name'] ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
+            <label for="image">Image : </label>
+            <input type="file" name="image" id="image" accept="image/png, image/jpeg">
         </div>
         <button>Ajouter l'article</button>
     </form>
-    <?php unset ($_SESSION['form']); ?>
 </body>
-
 </html>

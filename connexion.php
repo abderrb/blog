@@ -73,7 +73,7 @@ if(!empty($_POST)){
             <label for="pass">Mot de passe :</label>
             <input type="password" name="pass" id="pass">
         </div>
-        <button>Me connecter</button>
     </form>
+    <a href="formulaire.php">j'ai oublié mon mot de passe</a>
 </body>
 </html>
