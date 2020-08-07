@@ -12,7 +12,7 @@ if(!empty($_POST)){
         // On vérifie que le format de l'e-mail est valide
         if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
             $_SESSION['message'][] = 'email invalide';
-            header('Location: oubli-pass.php');
+            header('Location: formulaire.php');
             exit;
         }
         // On récupère l'e-mail
@@ -76,10 +76,10 @@ if(!empty($_POST)){
             <p>Une demande de réinitialisation de mot de passe a été effectuée sur le super blog.</p>
             <p>Si vous n'êtes pas à l'origine de cette demande veuillez ignorer ce message</p>
             <p>Dans le cas contraire, veuillez cliquer sur le lien ci-dessous. Celui-ci expirera après 1 heure.</p>
-            <p><a href='".URL."/reset-pass.php?token=$token'>".URL."/reset-pass.php?token=$token</a></p>";
+            <p><a href='".URL."/reset.php?token=$token'>".URL."/reset.php?token=$token</a></p>";
             
             // En texte brut
-            $sendmail->AltBody = "Réinitialisation de mot de passe\nUne demande de réinitialisation de mot de passe a été effectuée sur le super blog.\nSi vous n'êtes pas à l'origine de cette demande veuillez ignorer ce message.\nDans le cas contraire, veuillez cliquer sur le lien ci-dessous. Celui-ci expirera après 1 heure.\n".URL."/reset-pass.php?token=$token";
+            $sendmail->AltBody = "Réinitialisation de mot de passe\nUne demande de réinitialisation de mot de passe a été effectuée sur le super blog.\nSi vous n'êtes pas à l'origine de cette demande veuillez ignorer ce message.\nDans le cas contraire, veuillez cliquer sur le lien ci-dessous. Celui-ci expirera après 1 heure.\n".URL."/reset.php?token=$token";
         
             // On envoie le mail
             $sendmail->send();

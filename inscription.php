@@ -98,14 +98,7 @@ if(!empty($_POST)){
 </head>
 <body>
     <h1>Inscription</h1>
-    <?php
-        if(isset($_SESSION['message']) && !empty($_SESSION['message'])){
-            foreach($_SESSION['message'] as $message){
-                echo "<p>$message</p>";
-            }
-            unset($_SESSION['message']);
-        }
-    ?>
+    
     <form method="post">
         <div>
             <label for="nom">Nom :</label>

@@ -22,22 +22,31 @@ $articles = $query->fetchAll(PDO::FETCH_ASSOC);
     <title>Document</title>
 </head>
 <body>
-    <?php foreach($articles as $article): ?>
-        <h1><a href="articles/detail.php?id=<?= $article['id'] ?>"><?= $article['title']?></a></h1>
-        <?php if (!is_null($article['featured_image'])):
-            // On fabrique le nom de l'image
-            $nomImage = pathinfo($article['featured_image'], PATHINFO_FILENAME);
-            $extension = pathinfo($article['featured_image'], PATHINFO_EXTENSION);
-
-            $miniature = "$nomImage-300x300.$extension";
-
-            
+<?php
+        if(isset($_SESSION['message']) && !empty($_SESSION['message'])):
+            foreach($_SESSION['message'] as $message):
             ?>
-            <P><img src="<?= URL . '/uploads/' .$miniature?>" alt="<?= $article['title']?>"> </p>
-        <?php endif; ?>
-        <p>Article écrit par <?= $article['nickname'] ?> dans la catégorie <?= $article['name'] ?> le <?= formatDate($article['created_at']) ?></p>
-        <p><?= extrait($article['content'], 171) ?></p>
+                <p><?= $message ?></p>
+            <?php
+            endforeach;
+            unset($_SESSION['message']);
+        endif;
+    ?>
 
+    <?php foreach($articles as $article): ?>
+        <h1><a href="articles/details.php?id=<?= $article['id'] ?>"><?= $article['title'] ?></a></h1>
+
+        <?php if(!is_null($article['featured_image'])): 
+            // On fabrique le nom de l'image
+            $nomImage = pathinfo($article['featured_image'], PATHINFO_FILENAME);    
+            $extension = pathinfo($article['featured_image'], PATHINFO_EXTENSION);  
+            $miniature = "$nomImage-300x300.$extension";  
+        ?>
+            <p><img src="<?= URL.'/uploads/'.$miniature ?>" alt="<?= $article['title'] ?>"></p>
+        <?php endif; ?>
+        
+        <p>Publié par <?= $article['nickname'] ?> dans la catégorie <?= $article['name'] ?> le <?= formatDate($article['created_at']) ?></p>
+        <p><?= extrait($article['content'], 300) ?></p>
     <?php endforeach; ?>
 </body>
 </html>
